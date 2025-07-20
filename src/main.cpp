@@ -15,27 +15,27 @@ struct Cell {
     CellType type = EMPTY;
 };
 
-std::vector<std::vector<Cell>> grid(WIDTH, std::vector<Cell>(HEIGHT));
+std::vector<std::vector<Cell>> grid(HEIGHT, std::vector<Cell>(WIDTH));
 
 void update() {
     for (int y = HEIGHT - 2; y >= 0; --y) {
         for (int x = 0; x < WIDTH; ++x) {
-            if (grid[x][y].type == SAND) {
-                if (grid[x][y + 1].type == EMPTY) {
-                    std::swap(grid[x][y], grid[x][y + 1]);
+            if (grid[y][x].type == SAND) {
+                if (grid[y + 1][x].type == EMPTY) {
+                    std::swap(grid[y][x], grid[y + 1][x]);
                 } else {
                     int dx = (std::rand() % 2 == 0) ? -1 : 1;
-                    if (x + dx >= 0 && x + dx < WIDTH && grid[x + dx][y + 1].type == EMPTY) {
-                        std::swap(grid[x][y], grid[x + dx][y + 1]);
+                    if (x + dx >= 0 && x + dx < WIDTH && grid[y + 1][x + dx].type == EMPTY) {
+                        std::swap(grid[y][x], grid[y + 1][x + dx]);
                     }
                 }
             }
 
-            if (grid[x][y].type == EMPTY && y < HEIGHT - 1 && grid[x][y + 1].type == WALL) {
-                grid[x][y].type = WALL;
+            if (grid[y][x].type == EMPTY && y < HEIGHT - 1 && grid[y + 1][x].type == WALL) {
+                grid[y][x].type = WALL;
             }
 
-            if (grid[x][y].type == WALL) {
+            if (grid[y][x].type == WALL) {
                 // Ensure walls do not move
                 continue;
             }
@@ -45,13 +45,17 @@ void update() {
 
 void draw(sf::RenderWindow& window) {
     sf::RectangleShape pixel(sf::Vector2f(PIXEL_SIZE, PIXEL_SIZE));
-    for (int x = 0; x < WIDTH; ++x) {
-        for (int y = 0; y < HEIGHT; ++y) {
-            if (grid[x][y].type == SAND) {
-                pixel.setFillColor(sf::Color(194, 178, 128));
-                pixel.setPosition(x * PIXEL_SIZE, y * PIXEL_SIZE);
-                window.draw(pixel);
+    for (int y = 0; y < HEIGHT; ++y) {
+        for (int x = 0; x < WIDTH; ++x) {
+            if (grid[y][x].type == SAND) {
+                pixel.setFillColor(sf::Color(194, 178, 128)); // Sand color
+            } else if (grid[y][x].type == WALL) {
+                pixel.setFillColor(sf::Color(100, 100, 100)); // Wall color
+            } else {
+                pixel.setFillColor(sf::Color::Black); // Empty cell color
             }
+            pixel.setPosition(x * PIXEL_SIZE, y * PIXEL_SIZE);
+            window.draw(pixel);
         }
     }
 }
@@ -70,11 +74,11 @@ int main() {
         }
 
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
             currentAction = DRAW_SAND;
-        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2)) {
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
             currentAction = DRAW_WALL;
-        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3)) {
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
             currentAction = ERASE;
         }
 
@@ -83,7 +87,7 @@ int main() {
             int x = mouse.x / PIXEL_SIZE;
             int y = mouse.y / PIXEL_SIZE;
             if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
-                grid[x][y].type = WALL;
+                grid[y][x].type = WALL;
             }
         }
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && currentAction == ERASE) {
@@ -91,7 +95,7 @@ int main() {
             int x = mouse.x / PIXEL_SIZE;
             int y = mouse.y / PIXEL_SIZE;
             if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
-                grid[x][y].type = EMPTY;
+                grid[y][x].type = EMPTY;
             }
         }
 
@@ -101,7 +105,7 @@ int main() {
             int x = mouse.x / PIXEL_SIZE;
             int y = mouse.y / PIXEL_SIZE;
             if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
-                grid[x][y].type = SAND;
+                grid[y][x].type = SAND;
             }
         }
 
