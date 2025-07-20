@@ -7,7 +7,9 @@ const int WIDTH = 200;
 const int HEIGHT = 150;
 const int PIXEL_SIZE = 4;
 
-enum CellType { EMPTY, SAND };
+enum CellType { EMPTY, SAND , WALL};
+
+enum UserAction { DRAW_SAND, DRAW_WALL, ERASE };
 
 struct Cell {
     CellType type = EMPTY;
@@ -27,6 +29,15 @@ void update() {
                         std::swap(grid[x][y], grid[x + dx][y + 1]);
                     }
                 }
+            }
+
+            if (grid[x][y].type == EMPTY && y < HEIGHT - 1 && grid[x][y + 1].type == WALL) {
+                grid[x][y].type = WALL;
+            }
+
+            if (grid[x][y].type == WALL) {
+                // Ensure walls do not move
+                continue;
             }
         }
     }
@@ -49,6 +60,8 @@ int main() {
     std::srand(std::time(nullptr));
     sf::RenderWindow window(sf::VideoMode(WIDTH * PIXEL_SIZE, HEIGHT * PIXEL_SIZE), "Sand Simulator");
 
+    UserAction currentAction = DRAW_SAND;
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -56,8 +69,34 @@ int main() {
                 window.close();
         }
 
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)) {
+            currentAction = DRAW_SAND;
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2)) {
+            currentAction = DRAW_WALL;
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3)) {
+            currentAction = ERASE;
+        }
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && currentAction == DRAW_WALL) {
+            sf::Vector2i mouse = sf::Mouse::getPosition(window);
+            int x = mouse.x / PIXEL_SIZE;
+            int y = mouse.y / PIXEL_SIZE;
+            if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
+                grid[x][y].type = WALL;
+            }
+        }
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && currentAction == ERASE) {
+            sf::Vector2i mouse = sf::Mouse::getPosition(window);
+            int x = mouse.x / PIXEL_SIZE;
+            int y = mouse.y / PIXEL_SIZE;
+            if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
+                grid[x][y].type = EMPTY;
+            }
+        }
+
         // Rysowanie piasku myszką
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && currentAction == DRAW_SAND) {
             sf::Vector2i mouse = sf::Mouse::getPosition(window);
             int x = mouse.x / PIXEL_SIZE;
             int y = mouse.y / PIXEL_SIZE;
